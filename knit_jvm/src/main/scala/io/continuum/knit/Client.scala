@@ -17,6 +17,7 @@ import org.apache.hadoop.fs.Path
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.FileSystem
 import org.apache.hadoop.io
+import org.apache.hadoop.io.DataOutputBuffer
 import org.apache.hadoop.security.{Credentials, UserGroupInformation}
 import org.apache.hadoop.yarn.api.ApplicationConstants
 import org.apache.hadoop.yarn.api.records.{ContainerLaunchContext, _}
@@ -83,8 +84,6 @@ object Client extends Logging {
     val fs = FileSystem.get(conf)
     val cred = new Credentials()
     val out = fs.addDelegationTokens(UserGroupInformation.getCurrentUser.getShortUserName, cred)
-    logger.info("about to put")
-    logger.info(f"##### $out ####")
 
     setDependencies()
 
@@ -102,6 +101,10 @@ object Client extends Logging {
     // application creation
     val app = client.createApplication()
     val amContainer = Records.newRecord(classOf[ContainerLaunchContext])
+
+    val dob = new DataOutputBuffer()
+    cred.writeTokenStorageToStream(dob)
+    amContainer.setTokens(ByteBuffer.wrap(dob.getData()))
 
     //add the jar which contains the Application master code to classpath
     val appMasterJar = Records.newRecord(classOf[LocalResource])
