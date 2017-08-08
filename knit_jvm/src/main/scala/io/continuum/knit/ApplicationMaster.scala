@@ -72,7 +72,7 @@ object ApplicationMaster extends Logging with AMRMClientAsync.CallbackHandler wi
     fs = FileSystem.get(conf)
     UserGroupInformation.isSecurityEnabled()
     val creds = UserGroupInformation.getCurrentUser().getCredentials()
-    cal nots = creds.numberOfTokens()
+    val nots = creds.numberOfTokens()
     logger.info(f"Number of tokens: $nots")
 
     // Create a client to talk to the RM
