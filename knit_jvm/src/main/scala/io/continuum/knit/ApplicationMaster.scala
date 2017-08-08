@@ -73,9 +73,10 @@ object ApplicationMaster extends Logging with AMRMClientAsync.CallbackHandler wi
     fs = FileSystem.get(conf)
     UserGroupInformation.isSecurityEnabled()
     val creds = UserGroupInformation.getCurrentUser().getCredentials()
+    val creds2 = new Credentials(creds)
     val nots = creds.numberOfTokens()
     logger.info(f"Number of tokens: $nots")
-    for (tok <- creds.getAllTokens()) {
+    for (tok <- creds.getAllSecretKeys()) {
         logger.info(f"TOKEN: $tok")
     }
 
@@ -199,7 +200,11 @@ object ApplicationMaster extends Logging with AMRMClientAsync.CallbackHandler wi
               " 2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr"
           ).asJava
         )
-    
+
+        val dob = new DataOutputBuffer()
+        cred2.writeTokenStorageToStream(dob)
+        ctx.setTokens(ByteBuffer.wrap(dob.getData()))
+
         ctx.setLocalResources(localResources.asJava)
         ctx.setEnvironment(env.asJava)
     
