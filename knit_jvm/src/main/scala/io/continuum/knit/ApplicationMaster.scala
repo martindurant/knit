@@ -8,6 +8,7 @@ import scala.collection.JavaConversions._
 
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.fs.FileSystem
+import org.apache.hadoop.io.DataOutputBuffer
 import org.apache.hadoop.yarn.api.ApplicationConstants
 import org.apache.hadoop.yarn.api.records._
 import org.apache.hadoop.yarn.api.protocolrecords._ 
@@ -73,7 +74,7 @@ object ApplicationMaster extends Logging with AMRMClientAsync.CallbackHandler wi
     fs = FileSystem.get(conf)
     UserGroupInformation.isSecurityEnabled()
     val creds = UserGroupInformation.getCurrentUser().getCredentials()
-    val creds2 = new Credentials(creds)
+    val cred2 = new Credentials(creds)
     val nots = creds.numberOfTokens()
     logger.info(f"Number of tokens: $nots")
     for (tok <- creds.getAllSecretKeys()) {
