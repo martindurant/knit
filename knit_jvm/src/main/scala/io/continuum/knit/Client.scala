@@ -81,8 +81,8 @@ object Client extends Logging {
 
     implicit val conf = new YarnConfiguration()
     val fs = FileSystem.get(conf)
-    val cred = Credentials()
-    val out = addDelegationTokens(UserGroupInformation.getCurrentUser.getShortUserName, cred)
+    val cred = new Credentials()
+    val out = fs.addDelegationTokens(UserGroupInformation.getCurrentUser.getShortUserName, cred)
     logger.info("about to put")
     logger.info(f"##### $out ####")
 
