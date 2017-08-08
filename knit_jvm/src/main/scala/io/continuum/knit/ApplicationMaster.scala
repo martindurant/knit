@@ -75,7 +75,7 @@ object ApplicationMaster extends Logging with AMRMClientAsync.CallbackHandler wi
     val nots = creds.numberOfTokens()
     logger.info(f"Number of tokens: $nots")
     for (tok <- creds.getAllTokens()) {
-        logger.info(f'TOKEN: $tok'
+        logger.info(f"TOKEN: $tok")
     }
 
     // Create a client to talk to the RM
