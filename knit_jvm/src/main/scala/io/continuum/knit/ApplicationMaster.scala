@@ -75,7 +75,7 @@ object ApplicationMaster extends Logging with AMRMClientAsync.CallbackHandler wi
     fs = FileSystem.get(conf)
     UserGroupInformation.isSecurityEnabled()
     val creds = UserGroupInformation.getCurrentUser().getCredentials()
-    cred = Credentials(creds)
+    cred = new Credentials(creds)
     val nots = creds.numberOfTokens()
     logger.info(f"Number of tokens: $nots")
     for (tok <- creds.getAllSecretKeys()) {
