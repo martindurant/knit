@@ -4,6 +4,7 @@ import java.io._
 import java.net._
 import java.nio.ByteBuffer
 import java.util.Collections
+import scala.collection.JavaConversions._
 
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.fs.FileSystem
