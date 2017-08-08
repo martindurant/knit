@@ -204,6 +204,10 @@ object ApplicationMaster extends Logging with AMRMClientAsync.CallbackHandler wi
         )
 
         val dob = new DataOutputBuffer()
+        for (tok <- cred.getAllTokens()) {
+            logger.info(f"TOKEN ADDED: $tok")
+        }
+
         cred.writeTokenStorageToStream(dob)
         ctx.setTokens(ByteBuffer.wrap(dob.getData()))
 
