@@ -7,6 +7,7 @@ import io.continuum.knit.ClientArguments.parseArgs
 import java.net._
 import java.util.Collections
 import java.io.DataOutputStream
+import java.nio.ByteBuffer
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.{ArrayBuffer, HashMap}
