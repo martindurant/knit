@@ -84,7 +84,7 @@ object Client extends Logging {
     implicit val conf = new YarnConfiguration()
     val fs = FileSystem.get(conf)
     val cred = new Credentials()
-    val out = fs.addDelegationTokens(UserGroupInformation.getCurrentUser.getShortUserName, cred)
+    val out = fs.addDelegationTokens("yarn", cred)
 
     setDependencies()
 
