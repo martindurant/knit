@@ -38,6 +38,7 @@ object ApplicationMaster extends Logging with AMRMClientAsync.CallbackHandler wi
 
   var registerResponse : RegisterApplicationMasterResponse = _
   var outstandingRequests = List[ContainerRequest]()
+  var cred: Credentials = _
   
   var files: String = _
   var pythonEnv: String = _
@@ -74,7 +75,7 @@ object ApplicationMaster extends Logging with AMRMClientAsync.CallbackHandler wi
     fs = FileSystem.get(conf)
     UserGroupInformation.isSecurityEnabled()
     val creds = UserGroupInformation.getCurrentUser().getCredentials()
-    val cred2 = new Credentials(creds)
+    cred = Credentials(creds)
     val nots = creds.numberOfTokens()
     logger.info(f"Number of tokens: $nots")
     for (tok <- creds.getAllSecretKeys()) {
@@ -203,7 +204,7 @@ object ApplicationMaster extends Logging with AMRMClientAsync.CallbackHandler wi
         )
 
         val dob = new DataOutputBuffer()
-        cred2.writeTokenStorageToStream(dob)
+        cred.writeTokenStorageToStream(dob)
         ctx.setTokens(ByteBuffer.wrap(dob.getData()))
 
         ctx.setLocalResources(localResources.asJava)
