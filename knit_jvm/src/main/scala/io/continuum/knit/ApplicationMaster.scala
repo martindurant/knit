@@ -70,6 +70,10 @@ object ApplicationMaster extends Logging with AMRMClientAsync.CallbackHandler wi
     
     conf = new YarnConfiguration()
     fs = FileSystem.get(conf)
+    UserGroupInformation.isSecurityEnabled()
+    val creds = UserGroupInformation.getCurrentUser().getCredentials()
+    cal nots = creds.numberOfTokens()
+    logger.info(f"Number of tokens: $nots")
 
     // Create a client to talk to the RM
     rmClient = AMRMClientAsync.createAMRMClientAsync[ContainerRequest](1000, this)
