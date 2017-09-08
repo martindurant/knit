@@ -23,7 +23,7 @@ def c():
 
 
 def test_miniconda_install(c):
-    assert c._install_miniconda()
+    assert os.path.exists(c.conda_bin)
 
 
 def test_create(c):
@@ -40,7 +40,7 @@ def test_create(c):
 
 
 def test_full_create(c):
-    env_zip = os.path.join(c.conda_root, 'envs', env_name+'.zip')
+    env_zip = os.path.join(c.conda_envs, env_name+'.zip')
     assert env_zip == c.create_env(env_name, packages=[
         'python=3', 'numpy', 'nomkl'], remove=True)
     assert os.path.getsize(env_zip) > 500000  # ensures zipfile has non-0 size

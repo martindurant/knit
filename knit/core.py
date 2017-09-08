@@ -317,8 +317,8 @@ class Knit(object):
         self.master.removeContainer(str(container_id))
 
     @staticmethod
-    def create_env(env_name, packages=None, conda_root=None, remove=False,
-                   channels=None):
+    def create_env(env_name, packages=None, remove=False,
+                   channels=None, conda_pars=None):
         """
         Create zipped directory of a conda environment
 
@@ -326,11 +326,15 @@ class Knit(object):
         ----------
         env_name : str
         packages : list
-        conda_root : str, optional
+        conda_root: str
+            Location of conda installation. If None, will download miniconda and
+            produce an isolated environment.
         remove : bool
             remove possible conda environment before creating
         channels : list of str
             conda channels to use (defaults to your conda setup)
+        conda_pars: dict
+            Further pars to pass to CondaCreator
 
         Returns
         -------
@@ -346,7 +350,7 @@ class Knit(object):
         """
 
         channels = channels or []
-        c = CondaCreator(conda_root=conda_root, channels=channels)
+        c = CondaCreator(channels=channels, **conda_pars)
         return c.create_env(env_name, packages=packages, remove=remove)
 
     def logs(self, shell=False):
