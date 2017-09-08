@@ -133,7 +133,8 @@ class CondaCreator(object):
         path : str
             path to newly created conda environment
         """
-        env_path = os.path.join(self.conda_envs, env_name)
+        env_path = os.path.join(self.conda_envs
+                                , env_name)
 
         if os.path.exists(env_path):
             conda_list = shell_out(

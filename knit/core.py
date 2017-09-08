@@ -350,7 +350,7 @@ class Knit(object):
         """
 
         channels = channels or []
-        c = CondaCreator(channels=channels, **conda_pars)
+        c = CondaCreator(channels=channels, **(conda_pars or {}))
         return c.create_env(env_name, packages=packages, remove=remove)
 
     def logs(self, shell=False):

@@ -92,7 +92,7 @@ class DaskYARNCluster(object):
         -------
         YARN application ID.
         """
-        c = CondaCreator(channels=self.channels, **self.conda_pars)
+        c = CondaCreator(channels=self.channels, **(self.conda_pars or {}))
         if self.env is None:
             env_name = 'dask-' + sha1(
                 '-'.join(self.packages).encode()).hexdigest()
