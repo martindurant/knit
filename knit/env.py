@@ -119,7 +119,8 @@ class CondaCreator(object):
 
     def _create_env(self, env_name, packages=None, remove=False):
         """
-        Create Conda env environment
+        Create Conda env environment. If env_name is found in self.conda_envs,
+        if will be used without checking the existence of any given packages
 
         Parameters
         ----------
@@ -133,26 +134,13 @@ class CondaCreator(object):
         path : str
             path to newly created conda environment
         """
-        env_path = os.path.join(self.conda_envs
-                                , env_name)
+        env_path = os.path.join(self.conda_envs, env_name)
 
         if os.path.exists(env_path):
-            conda_list = shell_out(
-                [self.conda_bin, 'list', '-n', env_name]).split()
-
-            # filter out python/python=3
-            pkgs = [p for p in packages if 'python' not in p]
-
-            # try to be idempotent -- if packages exist don't recreate
-            if all(p in conda_list for p in pkgs):
-                return env_path
-
             if not remove:
-                raise CondaException("Conda environment: {0} already exists"
-                                     " but does not contain {1}".format(
-                                        env_name, packages))
-            else:
-                shutil.rmtree(env_path)
+                # assume env is OK, ignore packages.
+                return env_path
+            shutil.rmtree(env_path)
 
         if not isinstance(packages, list):
             raise TypeError("Packages must be a list of strings")
@@ -195,7 +183,7 @@ class CondaCreator(object):
             path to conda environment
         """
 
-        env_path = os.path.join(self.conda_root, 'envs', env_name)
+        env_path = os.path.join(self.conda_envs, env_name)
 
         if os.path.exists(env_path):
             return env_path
