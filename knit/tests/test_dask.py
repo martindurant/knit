@@ -36,18 +36,18 @@ def timeout(seconds=10, error_message=os.strerror(errno.ETIME)):
 
 def test_knit_config():
     cluster = DaskYARNCluster(nn="pi", nn_port=31415, rm="e", rm_port=27182,
-                              autodetect=False)
+                              autodetect=False, replication_factor=1)
     str(cluster) == 'Knit<NN=pi:31415;RM=e:27182>'
     cluster = DaskYARNCluster(nn="pi", nn_port=31415, rm="e", rm_port=27182,
-                              autodetect=True)
+                              autodetect=True, replication_factor=1)
     str(cluster) == 'Knit<NN=pi:31415;RM=e:27182>'
 
     try:
         conf['nn'] = 'nothost'
-        d = DaskYARNCluster(autodetect=True)
+        d = DaskYARNCluster(autodetect=True, replication_factor=1)
         assert d.knit.conf['nn'] == 'nothost'
 
-        d = DaskYARNCluster(autodetect=True, nn='oi')
+        d = DaskYARNCluster(autodetect=True, nn='oi', replication_factor=1)
         assert d.knit.conf['nn'] == 'oi'
 
     finally:
@@ -57,7 +57,7 @@ def test_knit_config():
 def test_yarn_cluster(loop):
     python_version = '%d.%d' % (sys.version_info.major, sys.version_info.minor)
     python_pkg = 'python=%s' % (python_version)
-    with DaskYARNCluster(packages=[python_pkg]) as cluster:
+    with DaskYARNCluster(packages=[python_pkg], replication_factor=1) as cluster:
 
         @timeout(600)
         def start_dask():
@@ -101,12 +101,12 @@ def test_yarn_cluster_add_stop(loop):
     python_version = '%d.%d' % (sys.version_info.major, sys.version_info.minor)
     python_pkg = 'python=%s' % python_version
 
-    with DaskYARNCluster(packages=[python_pkg]) as _cluster:
+    with DaskYARNCluster(packages=[python_pkg], replication_factor=1) as _cluster:
         _cluster.start(1, cpus=1, memory=500)
 
     assert len(_cluster.workers) == 0
 
-    cluster = DaskYARNCluster(env=_cluster.env)
+    cluster = DaskYARNCluster(env=_cluster.env, replication_factor=1)
     cluster.start(1, cpus=1, memory=256)
 
     client = Client(cluster)

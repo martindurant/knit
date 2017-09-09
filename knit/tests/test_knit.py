@@ -40,7 +40,8 @@ def wait_for_containers(k, running_containers, timeout=30):
 
 @pytest.yield_fixture
 def k():
-    knitter = Knit(nn='localhost', rm='localhost', nn_port=8020, rm_port=8088)
+    knitter = Knit(nn='localhost', rm='localhost', nn_port=8020, rm_port=8088,
+                   replication_factor=1)
     try:
         yield knitter
     finally:
