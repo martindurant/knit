@@ -3,7 +3,8 @@ from __future__ import absolute_import, division, print_function
 import requests
 import logging
 import re
-from subprocess import STDOUT
+from subprocess import STDOUT, SubprocessError
+import time
 
 from .utils import shell_out, get_log_content
 from .exceptions import YARNException
@@ -59,7 +60,7 @@ class YARNAPI(object):
 
         data = r.json()['containers']
         if not data:
-            raise YARNException("No container logs available")
+            raise YARNException("No containers available")
 
         container = data['container']
         logger.debug(container)
@@ -73,7 +74,7 @@ class YARNAPI(object):
                       if get_app_id_num(d['id']) == app_id_num]
         return containers
 
-    def logs(self, app_id, shell=False):
+    def logs(self, app_id, shell=False, retries=4, delay=3):
         """
         Collect logs from RM (if running)
         With shell=True, collect logs from HDFS after job completion
@@ -119,9 +120,17 @@ class YARNAPI(object):
                                " using fallback", exc_info=1)
 
         # fallback
-        # TODO: this is just a location in HDFS
+        # TODO: this is just a location in HDFS given by app info
         cmd = ["yarn", "logs", "-applicationId", app_id]
-        out = shell_out(cmd)
+        while True:
+            try:
+                out = shell_out(cmd)
+                break
+            except SubprocessError:
+                retries -= 1
+                if retries < 0:
+                    raise
+                time.sleep(delay)
         logs = {}
         container = None
         ltype = 'stdout'
