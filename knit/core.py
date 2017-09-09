@@ -402,6 +402,7 @@ class Knit(object):
         if on_windows:
             subprocess.call(["cmd", "/c", "taskkill", "/f", "/t", "/pid", str(self.proc.pid)])
         self.proc.terminate()
+        self.proc.communicate()
         self.client = None
         out = self.status()['app']['finalStatus'] == 'KILLED'
         return out
