@@ -234,5 +234,10 @@ object Client extends Logging {
     client.killApplication(appId)
     true
   }
+
+  def exit() {
+    logger.info("Client exit")
+    System.exit(0)
+  }
   
 }

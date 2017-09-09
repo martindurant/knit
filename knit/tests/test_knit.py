@@ -189,7 +189,7 @@ def test_kill_status(k):
 
     time.sleep(1)
     status = k.runtime_status()
-    assert status == 'KILLED'
+    assert status in ['KILLED', 'NONE']
 
 
 def test_yarn_kill_status(k):
@@ -202,7 +202,7 @@ def test_yarn_kill_status(k):
 
     time.sleep(1)
     status = k.runtime_status()
-    assert status == 'KILLED'
+    assert status in ['KILLED', 'NONE']
 
 
 def test_logs(k):

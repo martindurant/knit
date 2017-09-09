@@ -62,7 +62,7 @@ def test_yarn_cluster(loop):
         @timeout(600)
         def start_dask():
             cluster.start(2, cpus=1, memory=256)
-        try:
+        try:    
             start_dask()
         except Exception as e:
             cluster.knit.kill()
@@ -104,7 +104,7 @@ def test_yarn_cluster_add_stop(loop):
     with DaskYARNCluster(packages=[python_pkg], replication_factor=1) as _cluster:
         _cluster.start(1, cpus=1, memory=500)
 
-    assert len(_cluster.workers) == 0
+        assert len(_cluster.workers) == 0
 
     cluster = DaskYARNCluster(env=_cluster.env, replication_factor=1)
     cluster.start(1, cpus=1, memory=256)

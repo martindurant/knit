@@ -7,7 +7,7 @@ import atexit
 import select
 import signal
 import platform
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, call
 import struct
 import time
 
@@ -20,6 +20,7 @@ from py4j.protocol import Py4JError
 from py4j.java_gateway import JavaGateway, GatewayClient
 
 logger = logging.getLogger(__name__)
+on_windows = platform.system() == "Windows"
 
 
 def read_int(stream):
@@ -105,6 +106,7 @@ class Knit(object):
         self.client = None
         self.master = None
         self.app_id = None
+        self.proc = None
         self._hdfs = None
 
     def __str__(self):
@@ -177,8 +179,6 @@ class Knit(object):
         args = ["hadoop", "jar", self.JAR_FILE_PATH, self.JAVA_APP,
                 "--callbackHost", str(callback_host), "--callbackPort",
                 str(callback_port)]
-        
-        on_windows = platform.system() == "Windows"
 
         # Launch the Java gateway.
         # We open a pipe to stdin so that the Java gateway can die when the pipe is broken
@@ -190,7 +190,7 @@ class Knit(object):
         else:
             # preexec_fn not supported on Windows
             proc = Popen(args, stdin=PIPE)
-
+        self.proc = proc
         gateway_port = None
         # We use select() here in order to avoid blocking indefinitely if the
         # subprocess dies before connecting
@@ -210,24 +210,9 @@ class Knit(object):
             raise Exception("Java gateway process exited before sending the"
                             " driver its port number")
 
-        # In Windows, ensure the Java child processes do not linger after Python has exited.
-        # In UNIX-based systems, the child process can kill itself on broken pipe (i.e. when
-        # the parent process' stdin sends an EOF). In Windows, however, this is not possible
-        # because java.lang.Process reads directly from the parent process' stdin, contending
-        # with any opportunity to read an EOF from the parent. Note that this is only best
-        # effort and will not take effect if the python process is violently terminated.
-        if on_windows:
-            # In Windows, the child process here is "spark-submit.cmd", not the JVM itself
-            # (because the UNIX "exec" command is not available). This means we cannot simply
-            # call proc.kill(), which kills only the "spark-submit.cmd" process but not the
-            # JVMs. Instead, we use "taskkill" with the tree-kill option "/t" to terminate all
-            # child processes in the tree (http://technet.microsoft.com/en-us/library/bb491009.aspx)
-            def killChild():
-                Popen(["cmd", "/c", "taskkill", "/f", "/t", "/pid", str(proc.pid)])
-            atexit.register(killChild)
-
         gateway = JavaGateway(GatewayClient(port=gateway_port), auto_convert=True)
         self.client = gateway.entry_point
+        self.client_gateway = gateway
         upload = self.check_env_needs_upload(env)
         self.app_id = self.client.start(env, ','.join(files), app_name, queue,
                                         str(upload))
@@ -413,6 +398,11 @@ class Knit(object):
             logger.debug("Error while attempting to kill", exc_info=1)
             # fallback
             self.yarn_api.kill(self.app_id)
+        self.client_gateway.shutdown()
+        if on_windows:
+            subprocess.call(["cmd", "/c", "taskkill", "/f", "/t", "/pid", str(self.proc.pid)])
+        self.proc.terminate()
+        self.client = None
         out = self.status()['app']['finalStatus'] == 'KILLED'
         return out
 
