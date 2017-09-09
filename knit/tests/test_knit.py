@@ -51,7 +51,7 @@ def k():
         except:
             pass
     import subprocess
-    print(subprocess.check_output(['free', '-m']).decode('utf8))
+    print(subprocess.check_output(['free', '-m']).decode('utf8'))
 
 
 def test_argument_parsing(k):
