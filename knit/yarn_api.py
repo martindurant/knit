@@ -3,7 +3,12 @@ from __future__ import absolute_import, division, print_function
 import requests
 import logging
 import re
-from subprocess import STDOUT, SubprocessError
+from subprocess import STDOUT
+try:
+    from subprocess import SubprocessError
+except ImportError:
+    # py2
+    from subprocess import CalledProcessError as SubprocessError
 import time
 
 from .utils import shell_out, get_log_content
@@ -129,7 +134,7 @@ class YARNAPI(object):
             except SubprocessError:
                 retries -= 1
                 if retries < 0:
-                    raise
+                    raise RuntimeError('Retries exceeded when fetching logs for ' + app_id)
                 time.sleep(delay)
         logs = {}
         container = None
