@@ -27,13 +27,13 @@ def wait_for_status(k, status, timeout=30):
         
 
 def wait_for_containers(k, running_containers, timeout=30):
-    cur_running_containers = k.status()['app']['runningContainers']
+    cur_running_containers = k.status()['runningContainers']
     while cur_running_containers != running_containers and timeout > 0:
         print("Current number of containers is {0}, waiting for {1}".format(cur_running_containers, running_containers))
 
         time.sleep(2)
         timeout -= 2
-        cur_running_containers = k.status()['app']['runningContainers']
+        cur_running_containers = k.status()['runningContainers']
         
     return timeout > 0
 
@@ -50,14 +50,12 @@ def k():
             knitter.kill()
         except:
             pass
-    import subprocess
-    print(subprocess.check_output(['free', '-m']).decode('utf8'))
 
 
 def test_argument_parsing(k):
     cmd = "sleep 10"
     with pytest.raises(KnitException):
-        k.start(cmd, files='a,b,c')
+        k.start(cmd, files='a,b,c', memory=128)
 
     with pytest.raises(KnitException):
         k.start(cmd, memory='128')
@@ -81,7 +79,7 @@ def test_cmd(k):
 
 def test_multiple_containers(k):
     cmd = "sleep 30"
-    k.start(cmd, num_containers=2)
+    k.start(cmd, num_containers=2, memory=128)
 
     wait_for_status(k, 'RUNNING')
 
@@ -100,7 +98,7 @@ def test_multiple_containers(k):
 
 def test_add_remove_containers(k):
     cmd = "sleep 60"
-    k.start(cmd, num_containers=1)
+    k.start(cmd, num_containers=1, memory=128)
 
     wait_for_status(k, 'RUNNING')
 
@@ -143,7 +141,7 @@ def test_memory(k):
 
     # not exactly sure on getting an exact number
     # 300*2+128(AM)
-    assert status['app']['allocatedMB'] >= 728, status['app']['allocatedMB']
+    assert status['allocatedMB'] >= 728, status['allocatedMB']
 
     # wait for job to finish
     if not k.wait_for_completion(30):
@@ -154,7 +152,7 @@ def test_cmd_w_conda_env(k):
     env_zip = k.create_env(env_name='dev', packages=['python=2.7'], remove=True)
     cmd = "$PYTHON_BIN -c 'import sys; print(sys.version_info);" \
           " import random; print(str(random.random()))'"
-    k.start(cmd, env=env_zip)
+    k.start(cmd, env=env_zip, memory=128)
 
     if not k.wait_for_completion(30):
         k.kill()

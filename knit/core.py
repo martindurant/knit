@@ -180,16 +180,18 @@ class Knit(object):
                 "--callbackHost", str(callback_host), "--callbackPort",
                 str(callback_port)]
 
+        e = os.environ.copy()
+        e['HADOOP_HEAPSIZE'] = "128"
         # Launch the Java gateway.
         # We open a pipe to stdin so that the Java gateway can die when the pipe is broken
         if not on_windows:
             # Don't send ctrl-c / SIGINT to the Java gateway:
             def preexec_func():
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
-            proc = Popen(args, stdin=PIPE, preexec_fn=preexec_func)
+            proc = Popen(args, stdin=PIPE, preexec_fn=preexec_func, env=e)
         else:
             # preexec_fn not supported on Windows
-            proc = Popen(args, stdin=PIPE)
+            proc = Popen(args, stdin=PIPE, env=e)
         self.proc = proc
         gateway_port = None
         # We use select() here in order to avoid blocking indefinitely if the
@@ -373,10 +375,12 @@ class Knit(object):
             True if successful, False otherwise
         """
         cur_status = self.runtime_status()
-        while cur_status != 'SUCCEEDED' and timeout > 0:
+        while cur_status not in ['FAILED', 'KILLED', 'FINISHED']:
             time.sleep(0.2)
             timeout -= 0.2
             cur_status = self.runtime_status()
+            if timeout < 0:
+                break
 
         return timeout > 0
 
@@ -398,13 +402,14 @@ class Knit(object):
             logger.debug("Error while attempting to kill", exc_info=1)
             # fallback
             self.yarn_api.kill(self.app_id)
-        self.client_gateway.shutdown()
-        if on_windows:
-            subprocess.call(["cmd", "/c", "taskkill", "/f", "/t", "/pid", str(self.proc.pid)])
-        self.proc.terminate()
-        self.proc.communicate()
-        self.client = None
-        out = self.status()['app']['finalStatus'] == 'KILLED'
+        if self.proc is not None:
+            self.client_gateway.shutdown()
+            if on_windows:
+                subprocess.call(["cmd", "/c", "taskkill", "/f", "/t", "/pid", str(self.proc.pid)])
+            self.proc.terminate()
+            self.proc.communicate()
+            self.proc = None
+        out = self.runtime_status() == 'KILLED'
         return out
 
     def __del__(self):
@@ -422,7 +427,7 @@ class Knit(object):
         log: dictionary
             status of application
         """
-        return self.yarn_api.status(self.app_id)
+        return self.yarn_api.apps_info(self.app_id)
     
     def runtime_status(self):
         """ Get runtime status of an application
@@ -432,23 +437,10 @@ class Knit(object):
         str:
             status of application
         """
-        if self.client is None:
-            return "NONE"
         try:
-            status = self.client.status()
-            # rename finished to succeeded
-            if status == "FINISHED":
-                return "SUCCEEDED"
-            return status
-        except Py4JError:
-            logger.debug("Error while fetching status", exc_info=1)
-
-        # fallback
-        status = self.status(self.app_id)
-        final_status = status['app']['finalStatus']
-        if final_status == 'UNDEFINED':
-            return status['app']['state']
-        return final_status
+            return self.yarn_api.state(self.app_id)
+        except:
+            return "NONE"
 
     @property
     def hdfs(self):
@@ -464,10 +456,13 @@ class Knit(object):
                 par2 = self.conf.copy()
                 par2['host'] = par2.pop('nn')
                 par2['port'] = par2.pop('nn_port')
+                del par2['replication_factor']
                 del par2['rm_port']
+                del par2['rm_port_https']
                 self._hdfs = hdfs3.HDFileSystem(pars=par2)
             except:
-                return
+                raise
+                self._hdfs = False
         return self._hdfs
 
     def list_envs(self):

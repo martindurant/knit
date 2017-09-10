@@ -118,14 +118,14 @@ def test_yarn_cluster_add_stop(loop):
     assert len(workers) == 1
 
     status = cluster.knit.status()
-    num_containers = status['app']['runningContainers']
+    num_containers = status['runningContainers']
     assert num_containers == 2  # 1 container for the worker and 1 for the RM
 
     cluster.add_workers(n_workers=1, cpus=1, memory=256)
 
     while num_containers != 3:
         status = cluster.knit.status()
-        num_containers = status['app']['runningContainers']
+        num_containers = status['runningContainers']
 
     # wait a tad to let workers connect to scheduler
 
@@ -144,7 +144,7 @@ def test_yarn_cluster_add_stop(loop):
     cluster.remove_worker(cluster.workers[1])
     while num_containers != 2:
         status = cluster.knit.status()
-        num_containers = status['app']['runningContainers']
+        num_containers = status['runningContainers']
 
     assert len(cluster.workers) == 1
 
