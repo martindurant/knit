@@ -461,7 +461,6 @@ class Knit(object):
                 del par2['rm_port_https']
                 self._hdfs = hdfs3.HDFileSystem(pars=par2)
             except:
-                raise
                 self._hdfs = False
         return self._hdfs
 
