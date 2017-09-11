@@ -74,6 +74,8 @@ def clear():
             import hdfs3
             hdfs = hdfs3.HDFileSystem()
             hdfs.rm(k.knit_home, recursive=True)
+        except ImportError:
+            pass
 
 
 def test_yarn_cluster(loop, clear):
