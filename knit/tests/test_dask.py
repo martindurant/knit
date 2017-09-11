@@ -53,24 +53,27 @@ def test_knit_config():
     finally:
         guess_config()
 
+python_version = '%d.%d' % (sys.version_info.major, sys.version_info.minor)
+python_pkg = 'python=%s' % (python_version)
+pkgs = [python_pkg, 'dask', 'distributed']
+
 
 def test_yarn_cluster(loop):
-    python_version = '%d.%d' % (sys.version_info.major, sys.version_info.minor)
-    python_pkg = 'python=%s' % (python_version)
-    with DaskYARNCluster(packages=[python_pkg], replication_factor=1) as cluster:
+    with DaskYARNCluster(packages=pkgs, replication_factor=1) as cluster:
 
         @timeout(600)
         def start_dask():
-            cluster.start(2, cpus=1, memory=256)
+            cluster.start(2, cpus=1, memory=128)
         try:    
             start_dask()
         except Exception as e:
             cluster.knit.kill()
             print("Fetching logs from failed test...")
-            time.sleep(5)
-            print(cluster.knit.logs())
             print(subprocess.check_output(['free', '-m']))
             print(subprocess.check_output(['df', '-h']))
+            print(cluster.knit.yarn_api.cluster_metrics())
+            time.sleep(5)
+            print(cluster.knit.logs())
 
             sys.exit(1)
 
@@ -92,22 +95,18 @@ def test_yarn_cluster(loop):
             print("Fetching logs from failed test...")
             time.sleep(5)
             print(subprocess.check_output(['free', '-m']))
-            print(cluster.knit.logs())
             print(subprocess.check_output(['df', '-h']))
-            sys.exit(1)
+            print(cluster.knit.logs())
 
 
 def test_yarn_cluster_add_stop(loop):
-    python_version = '%d.%d' % (sys.version_info.major, sys.version_info.minor)
-    python_pkg = 'python=%s' % python_version
-
-    with DaskYARNCluster(packages=[python_pkg], replication_factor=1) as _cluster:
-        _cluster.start(1, cpus=1, memory=500)
+    with DaskYARNCluster(packages=pkgs, replication_factor=1) as _cluster:
+        _cluster.start(1, cpus=1, memory=128)
 
         assert len(_cluster.workers) == 0
 
     cluster = DaskYARNCluster(env=_cluster.env, replication_factor=1)
-    cluster.start(1, cpus=1, memory=256)
+    cluster.start(1, cpus=1, memory=128)
 
     client = Client(cluster)
     future = client.submit(lambda x: x + 1, 10)
@@ -121,7 +120,7 @@ def test_yarn_cluster_add_stop(loop):
     num_containers = status['runningContainers']
     assert num_containers == 2  # 1 container for the worker and 1 for the RM
 
-    cluster.add_workers(n_workers=1, cpus=1, memory=256)
+    cluster.add_workers(n_workers=1, cpus=1, memory=128)
 
     while num_containers != 3:
         status = cluster.knit.status()
