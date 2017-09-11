@@ -180,18 +180,16 @@ class Knit(object):
                 "--callbackHost", str(callback_host), "--callbackPort",
                 str(callback_port)]
 
-        e = os.environ.copy()
-        e['HADOOP_HEAPSIZE'] = "128"
         # Launch the Java gateway.
         # We open a pipe to stdin so that the Java gateway can die when the pipe is broken
         if not on_windows:
             # Don't send ctrl-c / SIGINT to the Java gateway:
             def preexec_func():
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
-            proc = Popen(args, stdin=PIPE, preexec_fn=preexec_func, env=e)
+            proc = Popen(args, stdin=PIPE, preexec_fn=preexec_func)
         else:
             # preexec_fn not supported on Windows
-            proc = Popen(args, stdin=PIPE, env=e)
+            proc = Popen(args, stdin=PIPE)
         self.proc = proc
         gateway_port = None
         # We use select() here in order to avoid blocking indefinitely if the
