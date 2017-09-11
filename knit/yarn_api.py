@@ -41,7 +41,7 @@ class YARNAPI(object):
             r = requests.get(url)
             self._verify_response(r)
             data = r.json()
-            return data.get('apps', {'app': []})['app']
+            return (data.get('apps', None) or {'app': []})['app']
         else:
             r = requests.get(self.url + 'cluster/apps/{}'.format(app_id))
             self._verify_response(r)
