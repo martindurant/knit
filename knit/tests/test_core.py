@@ -22,7 +22,8 @@ def wait_for_status(k, status, timeout=30):
         time.sleep(2)
         timeout -= 2
         cur_status = k.runtime_status()
-        
+
+    time.sleep(1)
     return timeout > 0
         
 
@@ -34,7 +35,8 @@ def wait_for_containers(k, running_containers, timeout=30):
         time.sleep(2)
         timeout -= 2
         cur_running_containers = k.status()['runningContainers']
-        
+
+    time.sleep(1)
     return timeout > 0
 
 
