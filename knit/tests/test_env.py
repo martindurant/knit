@@ -19,7 +19,10 @@ env_name = 'test_env'
 @pytest.yield_fixture
 def c():
     c = CondaCreator()
-    yield c
+    try:
+        yield c
+    finally:
+        shutil.rmtree(c.conda_envs)
 
 
 def test_miniconda_install(c):

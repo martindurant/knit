@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import sys
 import errno
@@ -54,8 +56,8 @@ def test_knit_config():
         guess_config()
 
 python_version = '%d.%d' % (sys.version_info.major, sys.version_info.minor)
-python_pkg = 'python=%s' % (python_version)
-pkgs = [python_pkg, 'dask', 'distributed']
+python_pkg = 'python=%s' % python_version
+pkgs = [python_pkg, 'nomkl']
 
 
 def test_yarn_cluster(loop):
@@ -69,8 +71,8 @@ def test_yarn_cluster(loop):
         except Exception as e:
             cluster.knit.kill()
             print("Fetching logs from failed test...")
-            print(subprocess.check_output(['free', '-m']))
-            print(subprocess.check_output(['df', '-h']))
+            print(subprocess.check_output(['free', '-m']).decode())
+            print(subprocess.check_output(['df', '-h']).decode())
             print(cluster.knit.yarn_api.cluster_metrics())
             time.sleep(5)
             print(cluster.knit.logs())

@@ -1,6 +1,5 @@
 from __future__ import absolute_import, division, print_function
 
-import json
 import logging
 import re
 import requests
@@ -244,7 +243,7 @@ class YARNAPI(object):
         if not r.ok:
             try:
                 raise YARNException(r.json()['RemoteException']['message'])
-            except json.decoder.JSONDecodeError:
+            except ValueError:
                 raise YARNException(r.text)
 
     def cluster_info(self):
