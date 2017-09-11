@@ -54,10 +54,10 @@ def test_full_create(c):
 
 
 def test_find_env(c):
-    # Must follow one of the _create tests above
+    c.create_env(env_name, packages=['python=3'], remove=True)
     env_zip = os.path.join(c.conda_envs, env_name+'.zip')
     assert env_zip == c.create_env(env_name)
 
     # no error here -- the packages have already been installed so we
     # return the env_zip
-    env_zip == c.create_env(env_name, packages=['python=3', 'numpy'])
+    env_zip == c.create_env(env_name, packages=['python=3'])

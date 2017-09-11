@@ -4,6 +4,7 @@ import os
 import sys
 import errno
 import pytest
+import shutil
 import signal
 import subprocess
 import time
@@ -12,6 +13,7 @@ from functools import wraps
 pytest.importorskip('dask')
 import dask.distributed
 from knit.dask_yarn import DaskYARNCluster
+from knit import CondaCreator, Knit
 from knit.conf import conf, guess_config
 from dask.distributed import Client
 from distributed.utils_test import loop
@@ -60,7 +62,21 @@ python_pkg = 'python=%s' % python_version
 pkgs = [python_pkg, 'nomkl']
 
 
-def test_yarn_cluster(loop):
+@pytest.yield_fixture
+def clear():
+    c = CondaCreator()
+    try:
+        yield
+    finally:
+        shutil.rmtree(c.conda_envs)
+        try:
+            k = Knit()
+            import hdfs3
+            hdfs = hdfs3.HDFileSystem()
+            hdfs.rm(k.knit_home, recursive=True)
+
+
+def test_yarn_cluster(loop, clear):
     with DaskYARNCluster(packages=pkgs, replication_factor=1) as cluster:
 
         @timeout(600)
